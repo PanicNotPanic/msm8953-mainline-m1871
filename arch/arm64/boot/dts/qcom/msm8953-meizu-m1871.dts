@@ -381,6 +381,6 @@
 	vdddig-supply = <&pm8953_l5>;
 };
 
-&zap_shader {
+&gpu_zap_shader {
 	firmware-name = "qcom/msm8953/meizu/m1871/a506_zap.mdt";
 };
