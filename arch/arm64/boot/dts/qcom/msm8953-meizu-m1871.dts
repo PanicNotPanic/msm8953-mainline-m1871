@@ -108,6 +108,14 @@
 	};
 };
 
+&ibb {
+	qcom,discharge-resistor-kohms = <32>;
+};
+
+&lab {
+	qcom,soft-start-us = <800>;
+};
+
 &mdss_dsi0 {
 	vdda-supply = <&pm8953_s3>;
 	vddio-supply = <&pm8953_l6>;
@@ -124,8 +132,8 @@
 		pinctrl-0 = <&pmx_mdss_default &mdss_te_default>;
 		pinctrl-1 = <&pmx_mdss_sleep &mdss_te_default>;
 
-		vsp-supply = <&lab_vreg>;
-		vsn-supply = <&ibb_vreg>;
+		vsp-supply = <&lab>;
+		vsn-supply = <&ibb>;
 
 		port {
 			panel_in: endpoint {
