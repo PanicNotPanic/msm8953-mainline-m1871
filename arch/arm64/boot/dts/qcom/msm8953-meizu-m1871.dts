@@ -11,6 +11,9 @@
 #include <dt-bindings/leds/common.h>
 #include "dt-bindings/pinctrl/qcom,pmic-gpio.h"
 
+// /delete-node/ &qseecom_mem;
+// /delete-node/ &cont_splash_mem;
+
 
 / {
 	model = "Meizu M15";
@@ -34,7 +37,7 @@
 
 		framebuffer@90001000 {
 			compatible = "simple-framebuffer";
-			reg = <0 0x90001000 0 (1920 * 1080 * 3)>;
+			reg = <0 0x90001000 0 0x13ff000>;
 
 			width = <1080>;
 			height = <1920>;
@@ -62,42 +65,43 @@
 			gpios = <&tlmm 85 GPIO_ACTIVE_LOW>;
 		};
 
-        camera_snapshot {
-			label = "camera_snapshot";
-			gpios = <&tlmm 86 GPIO_ACTIVE_LOW>;
-			linux,input-type = <0x01>;
-			linux,code = <0x2fe>;
-			debounce-interval = <0x0f>;
-		};
+        // camera_snapshot {
+		// 	label = "camera_snapshot";
+		// 	gpios = <&tlmm 86 GPIO_ACTIVE_LOW>;
+		// 	linux,input-type = <0x01>;
+		// 	linux,code = <0x2fe>;
+		// 	debounce-interval = <0x0f>;
+		// };
 
-        hall_sensor {
-			label = "hall_sensor";
-			gpios = <&tlmm 54 GPIO_ACTIVE_LOW>;
-			linux,input-type = <0x01>;
-			linux,code = <0x19>;
-			debounce-interval = <0x0f>;
-		};
+        // hall_sensor {
+		// 	label = "hall_sensor";
+		// 	gpios = <&tlmm 54 GPIO_ACTIVE_LOW>;
+		// 	linux,input-type = <0x01>;
+		// 	linux,code = <0x19>;
+		// 	debounce-interval = <0x0f>;
+		// };
 	};
 
 	reserved-memory {
 		qseecom: qseecom@85b00000 {
 			no-map;
-			reg = <0x0 0x85b00000 0x0 0x1000000>;
+			reg = <0x0 0x85b00000 0x0 0x800000>;
 		};
 
         cont_splash_mem: cont-splash@90001000 {
-			reg = <0x00 0x90001000 0x00 0x13ff000>;
+			reg = <0x00 0x90001000 0x000 0x13ff000>;
 			no-map;
 		};
 
-		ramoops@9ff00000 {
-			compatible = "ramoops";
-			reg = <0x0 0x9ff00000 0x0 0x100000>;
-			record-size = <0x1000>;
-			console-size = <0x80000>;
-			ftrace-size = <0x1000>;
-			pmsg-size = <0x8000>;
-		};
+		// ramoops@9ff00000 {
+		// 	compatible = "ramoops";
+		// 	reg = <0x0 0x9ff00000 0x0 0x100000>;
+		// 	record-size = <0x1000>;
+		// 	console-size = <0x40000>;
+		// 	ftrace-size = <0x1000>;
+		// 	pmsg-size = <0x1000>;
+		// 	no-map;
+		// };
 	};
 
 	vph_pwr: vph-pwr-regulator {
@@ -116,21 +120,26 @@
 	qcom,soft-start-us = <800>;
 };
 
+&mdss {
+	status = "okay";
+};
+
 &mdss_dsi0 {
 	vdda-supply = <&pm8953_s3>;
 	vddio-supply = <&pm8953_l6>;
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&pmx_mdss_default>;
+	pinctrl-1 = <&pmx_mdss_sleep>;
 	status = "okay";
 
-	panel: panel@0 {
+	panel@0 {
 		reg = <0>;
+		compatible = "meizu,m1871-djn", "meizu,m1871-panel";
 
 		backlight = <&pmi8950_wled>;
 
-		// reset-gpios = <&tlmm 61 GPIO_ACTIVE_LOW>;
-
-		pinctrl-names = "default", "sleep";
-		pinctrl-0 = <&pmx_mdss_default &mdss_te_default>;
-		pinctrl-1 = <&pmx_mdss_sleep &mdss_te_default>;
+		reset-gpios = <&tlmm 64 GPIO_ACTIVE_LOW>;
+		te-gpios = <&tlmm 0x18 GPIO_ACTIVE_LOW>;
 
 		vsp-supply = <&lab>;
 		vsn-supply = <&ibb>;
@@ -169,6 +178,29 @@
 
 &pmi8950_fg {
 	monitored-battery = <&battery>;
+	power-supplies = <&pmi8950_smbcharger>;
+	status = "okay";
+};
+
+&pmi8950_smbcharger {
+	monitored-battery = <&battery>;
+	status = "okay";
+};
+
+&pmi8950_haptics {
+	qcom,actuator-type = <HAP_TYPE_ERM>;
+	qcom,brake-pattern = <0x3 0x3 0x0 0x0>;
+	qcom,wave-play-rate-us = <5263>;
+	qcom,wave-shape = <HAP_WAVE_SQUARE>;
+
+	status = "okay";
+};
+
+&pmi8950_wled {
+	qcom,current-limit-microamp = <20000>;
+	qcom,ovp-millivolt = <29500>;
+	qcom,num-strings = <2>;
+
 	status = "okay";
 };
 
@@ -183,6 +215,9 @@
 &sdhc_1 {
 	vmmc-supply = <&pm8953_l8>;
 	vqmmc-supply = <&pm8953_l5>;
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <0x108 0x109 0x10a 0x10b>;
+	pinctrl-1 = <0x10c 0x10d 0x10e 0x10f>;
 
 	status = "okay";
 };
@@ -191,11 +226,11 @@
 	vmmc-supply = <&pm8953_l11>;
 	vqmmc-supply = <&pm8953_l12>;
 
-	cd-gpios = <&tlmm 133 GPIO_ACTIVE_LOW>;
+	cd-gpios = <&tlmm 133 GPIO_ACTIVE_HIGH>;
 
-	pinctrl-0 = <&sdc2_clk_on &sdc2_cmd_on &sdc2_data_on &sdc2_cd_off>;
-	pinctrl-1 = <&sdc2_clk_off &sdc2_cmd_off &sdc2_data_off &sdc2_cd_off>;
 	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&sdc2_clk_on &sdc2_cmd_on &sdc2_data_on &sdc2_cd_on>;
+	pinctrl-1 = <&sdc2_clk_off &sdc2_cmd_off &sdc2_data_off &sdc2_cd_off>;
 
 	status = "okay";
 };
@@ -224,9 +259,11 @@
 //     };
 // };
 
+
 &rpm_requests {
 	regulators {
 		compatible = "qcom,rpm-pm8953-regulators";
+
 		vdd_s1-supply = <&vph_pwr>;
 		vdd_s2-supply = <&vph_pwr>;
 		vdd_s3-supply = <&vph_pwr>;
@@ -239,6 +276,7 @@
 		vdd_l4_l5_l6_l7_l16_l19-supply = <&pm8953_s4>;
 		vdd_l8_l11_l12_l13_l14_l15-supply = <&vph_pwr>;
 		vdd_l9_l10_l17_l18_l22-supply = <&vph_pwr>;
+		vdd_l23-supply = <&pm8953_s3>;
 
 		pm8953_s1: s1 {
 			regulator-min-microvolt = <863000>;
@@ -246,7 +284,7 @@
 		};
 
 		pm8953_s3: s3 {
-			regulator-min-microvolt = <1224000>;
+			regulator-min-microvolt = <984000>;
 			regulator-max-microvolt = <1224000>;
 		};
 
@@ -261,8 +299,8 @@
 		};
 
 		pm8953_l2: l2 {
-			regulator-min-microvolt = <1000000>;
-			regulator-max-microvolt = <1000000>;
+			regulator-min-microvolt = <975000>;
+			regulator-max-microvolt = <1225000>;
 		};
 
 		pm8953_l3: l3 {
@@ -297,28 +335,23 @@
 		};
 
 		pm8953_l10: l10 {
-			regulator-min-microvolt = <1800000>;
-			regulator-max-microvolt = <1800000>;
+			regulator-min-microvolt = <2850000>;
+			regulator-max-microvolt = <2850000>;
 		};
 
 		pm8953_l11: l11 {
-			regulator-min-microvolt = <2800000>;
-			regulator-max-microvolt = <3000000>;
+			regulator-min-microvolt = <2950000>;
+			regulator-max-microvolt = <2950000>;
 		};
 
 		pm8953_l12: l12 {
 			regulator-min-microvolt = <1800000>;
-			regulator-max-microvolt = <3000000>;
+			regulator-max-microvolt = <2950000>;
 		};
 
 		pm8953_l13: l13 {
-			regulator-min-microvolt = <3075000>;
+			regulator-min-microvolt = <3125000>;
 			regulator-max-microvolt = <3125000>;
-		};
-
-		pm8953_l15: l15 {
-			regulator-min-microvolt = <1800000>;
-			regulator-max-microvolt = <1800000>;
 		};
 
 		pm8953_l16: l16 {
@@ -327,8 +360,8 @@
 		};
 
 		pm8953_l17: l17 {
-			regulator-min-microvolt = <2800000>;
-			regulator-max-microvolt = <3000000>;
+			regulator-min-microvolt = <2750000>;
+			regulator-max-microvolt = <2850000>;
 		};
 
 		pm8953_l19: l19 {
@@ -348,6 +381,7 @@
 	};
 };
 
+
 &tlmm{
 	gpio-reserved-ranges = <0 4>, <135 4>;
 
@@ -359,7 +393,7 @@
 	};
 
 	pmx_mdss_default: pmx-mdss-default-state {
-		pins = "gpio61";
+		pins = "gpio64";
 		function = "gpio";
 		drive-strength = <8>;
 		bias-disable;
@@ -367,28 +401,49 @@
 	};
 
 	pmx_mdss_sleep: pmx-mdss-sleep-state {
-		pins = "gpio61";
+		pins = "gpio64";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+
+	mdss_te_active: mdss_te_active_state {
+		pins = "gpio24";
+		function = "gpio";
+		drive-strength = <2>;
+		bias-pull-down;
+	};
+
+	mdss_te_suspend: mdss_te_suspend_state {
+		pins = "gpio24";
 		function = "gpio";
 		drive-strength = <2>;
 		bias-pull-down;
 	};
 };
 
-&wcnss {
-	vddpx-supply = <&pm8953_l5>;
+// &uart_0 {
+// 	pinctrl-names = "default";
+// 	pinctrl-0 = <&uart_console_active>;
 
-	status = "okay";
-};
+// 	status = "okay";
+// };
 
-&wcnss_iris {
-	compatible = "qcom,wcn3660b";
+// &wcnss {
+// 	vddpx-supply = <&pm8953_l5>;
 
-	vddxo-supply = <&pm8953_l7>;
-	vddrfa-supply = <&pm8953_l19>;
-	vddpa-supply = <&pm8953_l9>;
-	vdddig-supply = <&pm8953_l5>;
-};
+// 	status = "okay";
+// };
 
-&gpu_zap_shader {
-	firmware-name = "qcom/msm8953/meizu/m1871/a506_zap.mdt";
-};
+// &wcnss_iris {
+// 	compatible = "qcom,wcn3660b";
+
+// 	vddxo-supply = <&pm8953_l7>;
+// 	vddrfa-supply = <&pm8953_l19>;
+// 	vddpa-supply = <&pm8953_l9>;
+// 	vdddig-supply = <&pm8953_l5>;
+// };
+
+// &gpu_zap_shader {
+// 	firmware-name = "qcom/msm8953/meizu/m1871/a506_zap.mdt";
+// };

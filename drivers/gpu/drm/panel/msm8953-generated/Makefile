@@ -66,3 +66,4 @@ obj-$(CONFIG_DRM_PANEL_XIAOMI_TIANMA_NT35596) += panel-xiaomi-tianma-nt35596.o
 obj-$(CONFIG_DRM_PANEL_XIAOMI_YSL_HX8394F) += panel-xiaomi-ysl-hx8394f.o
 obj-$(CONFIG_DRM_PANEL_XIAOMI_YSL_ILI7807D) += panel-xiaomi-ysl-ili7807d.o
 obj-$(CONFIG_DRM_PANEL_XIAOMI_YSL_ILI9881C) += panel-xiaomi-ysl-ili9881c.o
+obj-$(CONFIG_DRM_PANEL_MEIZU_M1871_DJN) += panel-meizu-m1871djn.o
